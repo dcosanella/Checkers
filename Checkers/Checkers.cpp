@@ -22,8 +22,8 @@ class CheckerBoard {
 // Initialize CheckerBoard
 void CheckerBoard::initBoard(void) {
 	for(int row = 0; row < 8; row++) {
-		for (int col = 0; col < 8; col++) {
-			if ((row + col) % 2 != 0 && row >= 5) {
+		for(int col = 0; col < 8; col++) {
+			if((row + col) % 2 != 0 && row >= 5) {
 				board[row][col] = "W";
 				if (row == 3 || row == 4) {
 					board[row][col] = " ";
@@ -49,7 +49,7 @@ void CheckerBoard::displayBoard(void) {
 		cout << "\t\t+-----+-----+-----+-----+-----+-----+-----+-----+" << endl;
 
 		cout << "\t\t|";
-		for (int col = 0; col < 8; col++) {
+		for(int col = 0; col < 8; col++) {
 			if (board[row][col].empty()) {
 				cout << "  " << "   |";
 			}
@@ -68,6 +68,6 @@ int main()
 	CheckerBoard checkerBoard;
 	checkerBoard.initBoard();
 	checkerBoard.displayBoard();
-    return 0;
+	return 0;
 }
 
