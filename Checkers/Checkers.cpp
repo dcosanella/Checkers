@@ -7,8 +7,6 @@
 
 using namespace std;
 
-string g_blank = "";
-
 class CheckerBoard {
 	public:
 		void displayTitle(void);
@@ -22,7 +20,7 @@ class CheckerBoard {
 		string m_board[8][8];
 };
 
-class Game : public CheckerBoard {
+class Game {
 	public:
 		void displayGame(void);
 		void gameLoop(CheckerBoard checkerBoard);
@@ -33,6 +31,7 @@ class Game : public CheckerBoard {
 		int getJumpMove(void);
 
 	private:
+		CheckerBoard m_checkerBoard;
 		string m_player;
 		int m_row;
 		int m_col;
@@ -57,13 +56,13 @@ void CheckerBoard::initBoard(void) {
 			if ((row + col) % 2 != 0 && row >= 5) {
 				m_board[row][col] = "r";
 				if (row == 3 || row == 4) {
-					m_board[row][col] = g_blank;
+					m_board[row][col] = "";
 				}
 			}
 			else if ((row + col) % 2 != 0 && row <= 2) {
 				m_board[row][col] = "b";
 				if (row >= 3) {
-					m_board[row][col] = g_blank;
+					m_board[row][col] = "";
 				}
 			}
 		}
@@ -83,7 +82,7 @@ void CheckerBoard::displayBoard(void) {
 		cout << "\t\t  +-----+-----+-----+-----+-----+-----+-----+-----+" << endl;
 		cout << "\t\t" << row << " |";
 		for (int col = 0; col < 8; col++) {
-			if (m_board[row][col] == g_blank) {
+			if (m_board[row][col].empty()) {
 				cout << "  " << "   |";
 			}
 			else {
@@ -111,17 +110,16 @@ void CheckerBoard::updateBoard(int row, int col, string square) {
 //---------------------------------------------------------------------------------
 // Clear a game square
 void CheckerBoard::clearSquare(int row, int col) {
-	m_board[row][col] = g_blank;
+	m_board[row][col] = "";
 }
 
 //---------------------------------------------------------------------------------
 // Display the game
 void Game::displayGame(void) {
-	CheckerBoard checkerBoard;
-	checkerBoard.initBoard();
-	checkerBoard.displayBoard();
+	m_checkerBoard.initBoard();
+	m_checkerBoard.displayBoard();
 	m_player = "r";
-	gameLoop(checkerBoard);
+	gameLoop(m_checkerBoard);
 }
 
 //---------------------------------------------------------------------------------
@@ -158,12 +156,19 @@ void Game::gameLoop(CheckerBoard checkerBoard) {
 					}
 				}	
 			}
-			//TODO: add invalid move exception (or function). Or look for other valid moves (jump over opposing pieces, etc.)
 			// Check for jumps
 			else if ((m_col - m_colMove == 2 || m_col - m_colMove == -2) && (m_row - m_rowMove == 2 || m_row - m_rowMove == -2)) {
 				bool jumpMove = checkForJump(m_row, m_col, m_rowMove, m_colMove, checkerBoard);
 				if (jumpMove) {
-					cout << "in jumpMove\n\n";
+					jump(m_row, m_col, m_rowMove, m_colMove, checkerBoard);
+					string player = getPlayer();
+					m_player = switchPlayer(player);
+				}
+			}
+			// Check for double jumps
+			else if ((m_col - m_colMove == 4 || m_col - m_colMove == -4) && (m_row - m_rowMove == 4 || m_row - m_rowMove == -4)) {
+				bool jumpMove = checkForJump(m_row, m_col, m_rowMove, m_colMove, checkerBoard);
+				if (jumpMove) {
 					jump(m_row, m_col, m_rowMove, m_colMove, checkerBoard);
 					string player = getPlayer();
 					m_player = switchPlayer(player);
@@ -199,38 +204,120 @@ string Game::switchPlayer(string player) {
 // Check for a legel jump move
 bool Game::checkForJump(int row, int col, int rowMove, int colMove, CheckerBoard checkerBoard) {
 	m_jump = false;
+	// jump down left to right
 	if (rowMove - row == 2 && colMove - col == 2) {
 		string square = checkerBoard.getSquare((rowMove - 1), (colMove - 1));		// Check square to jump over
-		string jumpSquare = checkerBoard.getSquare(rowMove, colMove);				// Check square to jump to 
-		if (square != m_player  && jumpSquare == g_blank) {
-			m_jump = true;
-			m_jumpOption = 1;
+		string jumpSquare = checkerBoard.getSquare(rowMove, colMove);				// Check square to jump to
+		if (!(square.empty())) {
+			if (square != m_player  && jumpSquare.empty()) {
+				m_jump = true;
+				m_jumpOption = 1;
+			}
 		}
 	}
+	// jump up right to left
 	else if (row - rowMove == 2 && col - colMove == 2) {
-		string square = checkerBoard.getSquare((rowMove - 1), (colMove - 1));		// Check square to jump over
-		string jumpSquare = checkerBoard.getSquare(rowMove, colMove);				// Check square to jump to 
-		if (square != m_player  && jumpSquare == g_blank) {
-			m_jump = true;
-			m_jumpOption = 2;
+		string square = checkerBoard.getSquare((rowMove + 1), (colMove + 1));		// Check square to jump over
+		string jumpSquare = checkerBoard.getSquare(rowMove, colMove);				// Check square to jump to
+		if (!(square.empty())) {
+			if (square != m_player  && jumpSquare.empty()) {
+				m_jump = true;
+				m_jumpOption = 2;
+			}
 		}
 	}
+	// jump up left to right
 	else if (row - rowMove == 2 && colMove - col == 2) {
-		string square = checkerBoard.getSquare((rowMove - 1), (colMove - 1));		// Check square to jump over
-		string jumpSquare = checkerBoard.getSquare(rowMove, colMove);				// Check square to jump to 
-		if (square != m_player  && jumpSquare == g_blank) {
-			m_jump = true;
-			m_jumpOption = 3;
+		string square = checkerBoard.getSquare((rowMove + 1), (colMove - 1));		// Check square to jump over
+		string jumpSquare = checkerBoard.getSquare(rowMove, colMove);				// Check square to jump to
+		if (!(square.empty())) {
+			if (square != m_player  && jumpSquare.empty()) {
+				m_jump = true;
+				m_jumpOption = 3;
+			}
 		}
 	}
+	// jump down right to left
 	else if (rowMove - row == 2 && col - colMove == 2) {
-		string square = checkerBoard.getSquare((rowMove - 1), (colMove - 1));		// Check square to jump over
-		string jumpSquare = checkerBoard.getSquare(rowMove, colMove);				// Check square to jump to 
-		if (square != m_player  && jumpSquare == g_blank) {
-			m_jump = true;
-			m_jumpOption = 4;
+		string square = checkerBoard.getSquare((rowMove - 1), (colMove + 1));		// Check square to jump over
+		string jumpSquare = checkerBoard.getSquare(rowMove, colMove);				// Check square to jump to
+		if (!(square.empty())) {
+			if (square != m_player  && jumpSquare.empty()) {
+				m_jump = true;
+				m_jumpOption = 4;
+			}
 		}
 	}
+	// check for double jumps
+	// double jump down left to right
+	else if (rowMove - row == 4 && colMove - col == 4) {
+		string square = checkerBoard.getSquare((rowMove - 3), (colMove - 3));		// Check square to jump over
+		string jumpSquare = checkerBoard.getSquare((rowMove - 2), (colMove - 2));	// Check square to jump to 
+		if (!(square.empty())) {
+			if (square != m_player  && jumpSquare.empty()) {
+				square = checkerBoard.getSquare((rowMove - 1), (colMove - 1));		// Check square to jump over
+				jumpSquare = checkerBoard.getSquare(rowMove, colMove);				// Check square to jump to 
+				if (!(square.empty())) {
+					if (square != m_player  && jumpSquare.empty()) {
+						m_jump = true;
+						m_jumpOption = 5;
+					}
+				}
+			}
+		}
+	}
+	// double jump up right to left
+	else if (row - rowMove == 4 && col - colMove == 4) {
+		string square = checkerBoard.getSquare((rowMove + 3), (colMove + 3));		// Check square to jump over
+		string jumpSquare = checkerBoard.getSquare((rowMove + 2), (colMove + 2));	// Check square to jump to
+		if (!(square.empty())) {
+			if (square != m_player  && jumpSquare.empty()) {
+				square = checkerBoard.getSquare((rowMove + 1), (colMove + 1));		// Check square to jump over
+				jumpSquare = checkerBoard.getSquare(rowMove, colMove);				// Check square to jump to 
+				if (!(square.empty())) {
+					if (square != m_player  && jumpSquare.empty()) {
+						m_jump = true;
+						m_jumpOption = 6;
+					}
+				}
+			}
+		}
+	}
+	// double jump up left to right
+	else if (row - rowMove == 4 && colMove - col == 4) {
+		string square = checkerBoard.getSquare((rowMove + 3), (colMove - 3));		// Check square to jump over
+		string jumpSquare = checkerBoard.getSquare((rowMove + 2), (colMove - 2));	// Check square to jump to
+		if (!(square.empty())) {
+			if (square != m_player  && jumpSquare.empty()) {
+				square = checkerBoard.getSquare((rowMove + 1), (colMove - 1));		// Check square to jump over
+				jumpSquare = checkerBoard.getSquare(rowMove, colMove);				// Check square to jump to 
+				if (!(square.empty())) {
+					if (square != m_player  && jumpSquare.empty()) {
+						m_jump = true;
+						m_jumpOption = 7;
+					}
+				}
+			}
+		}
+	}
+	// double jump down right to left
+	else if (rowMove - row == 4 && col - colMove == 4) {
+		string square = checkerBoard.getSquare((rowMove - 3), (colMove + 3));		// Check square to jump over
+		string jumpSquare = checkerBoard.getSquare((rowMove - 2), (colMove + 2));	// Check square to jump to
+		if (!(square.empty())) {
+			if (square != m_player  && jumpSquare.empty()) {
+				square = checkerBoard.getSquare((rowMove - 1), (colMove + 1));		// Check square to jump over
+				jumpSquare = checkerBoard.getSquare(rowMove, colMove);				// Check square to jump to 
+				if (!(square.empty())) {
+					if (square != m_player  && jumpSquare.empty()) {
+						m_jump = true;
+						m_jumpOption = 8;
+					}
+				}
+			}
+		}
+	}
+
 	return m_jump;
 }
 
@@ -239,33 +326,62 @@ bool Game::checkForJump(int row, int col, int rowMove, int colMove, CheckerBoard
 void Game::jump(int row, int col, int rowMove, int colMove, CheckerBoard checkerBoard) {
 	int jumpOption = getJumpMove();
 	switch (jumpOption) {
-		case 1:
-			checkerBoard.clearSquare(row, col);
-			checkerBoard.clearSquare((rowMove - 1), (colMove - 1));
-			checkerBoard.updateBoard(rowMove, colMove, m_player);
-			checkerBoard.displayBoard();
-			break;
-		case 2:
-			checkerBoard.clearSquare(row, col);
-			checkerBoard.clearSquare((rowMove + 1), (colMove + 1));
-			checkerBoard.updateBoard(rowMove, colMove, m_player);
-			checkerBoard.displayBoard();
-			break;
-		case 3:
-			checkerBoard.clearSquare(row, col);
-			checkerBoard.clearSquare((rowMove + 1), (colMove - 1));
-			checkerBoard.updateBoard(rowMove, colMove, m_player);
-			checkerBoard.displayBoard();
-			break;
-		case 4: //TODO: find out why this case is not working properly. Should jump piece down from right to left
-			checkerBoard.clearSquare(row, col);
-			checkerBoard.clearSquare((rowMove - 1), (colMove + 1));
-			checkerBoard.updateBoard(rowMove, colMove, m_player);
-			checkerBoard.displayBoard();
-			break;
-		default:
-			break;
+	case 1:
+		checkerBoard.clearSquare(row, col);
+		checkerBoard.clearSquare((rowMove - 1), (colMove - 1));
+		checkerBoard.updateBoard(rowMove, colMove, m_player);
+		checkerBoard.displayBoard();
+		break;
+	case 2:
+		checkerBoard.clearSquare(row, col);
+		checkerBoard.clearSquare((rowMove + 1), (colMove + 1));
+		checkerBoard.updateBoard(rowMove, colMove, m_player);
+		checkerBoard.displayBoard();
+		break;
+	case 3:
+		checkerBoard.clearSquare(row, col);
+		checkerBoard.clearSquare((rowMove + 1), (colMove - 1));
+		checkerBoard.updateBoard(rowMove, colMove, m_player);
+		checkerBoard.displayBoard();
+		break;
+	case 4:
+		checkerBoard.clearSquare(row, col);
+		checkerBoard.clearSquare((rowMove - 1), (colMove + 1));
+		checkerBoard.updateBoard(rowMove, colMove, m_player);
+		checkerBoard.displayBoard();
+		break;
+	case 5:
+		checkerBoard.clearSquare(row, col);
+		checkerBoard.clearSquare((rowMove - 3), (colMove - 3));
+		checkerBoard.clearSquare((rowMove - 1), (colMove - 1));
+		checkerBoard.updateBoard(rowMove, colMove, m_player);
+		checkerBoard.displayBoard();
+		break;
+	case 6:
+		checkerBoard.clearSquare(row, col);
+		checkerBoard.clearSquare((rowMove + 3), (colMove + 3));
+		checkerBoard.clearSquare((rowMove + 1), (colMove + 1));
+		checkerBoard.updateBoard(rowMove, colMove, m_player);
+		checkerBoard.displayBoard();
+		break;
+	case 7:
+		checkerBoard.clearSquare(row, col);
+		checkerBoard.clearSquare((rowMove + 3), (colMove - 3));
+		checkerBoard.clearSquare((rowMove + 1), (colMove - 1));
+		checkerBoard.updateBoard(rowMove, colMove, m_player);
+		checkerBoard.displayBoard();
+		break;
+	case 8:
+		checkerBoard.clearSquare(row, col);
+		checkerBoard.clearSquare((rowMove - 3), (colMove + 3));
+		checkerBoard.clearSquare((rowMove - 1), (colMove + 1));
+		checkerBoard.updateBoard(rowMove, colMove, m_player);
+		checkerBoard.displayBoard();
+		break;
+	default:
+		break;
 	}
+
 	string player = getPlayer();
 	m_player = switchPlayer(player);
 	gameLoop(checkerBoard);
