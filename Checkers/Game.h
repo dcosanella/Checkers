@@ -10,8 +10,7 @@ class Game {
 public:
 	void displayGame(void);
 	void gameLoop(CheckerBoard checkerBoard);
-	string& getPlayer(void);
-	string switchPlayer(string player);
+	void switchPlayer(void);
 	bool checkForJump(int row, int col, int rowMove, int colMove, CheckerBoard checkerBoard);
 	void jump(int row, int col, int rowMove, int colMove, CheckerBoard checkerBoard);
 	int getJumpMove(void);

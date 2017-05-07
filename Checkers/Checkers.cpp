@@ -18,16 +18,20 @@ void CheckerBoard::displayTitle(void) {
 //---------------------------------------------------------------------------------
 // Initialize checkerboard
 void CheckerBoard::initBoard(void) {
+	m_rPieces = 0;
+	m_bPieces = 0;
 	for (int row = 0; row < 8; row++) {
 		for (int col = 0; col < 8; col++) {
 			if ((row + col) % 2 != 0 && row >= 5) {
 				m_board[row][col] = "r";
+				m_rPieces++;
 				if (row == 3 || row == 4) {
 					m_board[row][col] = "";
 				}
 			}
 			else if ((row + col) % 2 != 0 && row <= 2) {
 				m_board[row][col] = "b";
+				m_bPieces++;
 				if (row >= 3) {
 					m_board[row][col] = "";
 				}
@@ -41,6 +45,8 @@ void CheckerBoard::initBoard(void) {
 void CheckerBoard::displayBoard(void) {
 	system("cls");
 	displayTitle();
+	cout << "\n";
+	displayScore();
 	cout << "\n\n";
 
 	cout << "\t\t     0     1     2     3     4     5     6     7" << endl;
@@ -63,8 +69,37 @@ void CheckerBoard::displayBoard(void) {
 }
 
 //---------------------------------------------------------------------------------
+// Display score (number of game pieces remaining)
+void CheckerBoard::displayScore() {
+	cout << "\n";
+	cout << "\t\t\tPlayer r: " << m_rPieces;
+	cout << "\t\tPlayer b: " << m_bPieces;
+}
+
+//---------------------------------------------------------------------------------
+// Update the score
+void CheckerBoard::updateScore(string& player, int& jumpOption) {
+	if (jumpOption <= 4) {
+		if (player == "r" || player == "R") {
+			m_bPieces--;
+		}
+		else if (player == "b" || player == "B") {
+			m_rPieces--;
+		}
+	}
+	else if (jumpOption > 4 && jumpOption <= 8) {
+		if (player == "r" || player == "R") {
+			m_bPieces -= 2;
+		}
+		else if (player == "b" || player == "B") {
+			m_rPieces -= 2;
+		}
+	}
+}
+
+//---------------------------------------------------------------------------------
 // Return string inside of specfied square
-string& CheckerBoard::getSquare(int row, int col) {
+const string& CheckerBoard::getSquare(int row, int col) {
 	return m_board[row][col];
 }
 
@@ -134,8 +169,7 @@ void Game::gameLoop(CheckerBoard checkerBoard) {
 					if (squareMove.empty()) {
 						checkerBoard.clearSquare(m_row, m_col);
 						checkerBoard.updateBoard(m_rowMove, m_colMove, m_player);
-						string player = getPlayer();
-						m_player = switchPlayer(player);
+						switchPlayer();
 						checkerBoard.displayBoard();
 					}
 					else {
@@ -150,8 +184,7 @@ void Game::gameLoop(CheckerBoard checkerBoard) {
 					bool jumpMove = checkForJump(m_row, m_col, m_rowMove, m_colMove, checkerBoard);
 					if (jumpMove) {
 						jump(m_row, m_col, m_rowMove, m_colMove, checkerBoard);
-						string player = getPlayer();
-						m_player = switchPlayer(player);
+						switchPlayer();
 					}
 				}
 				// double jump move
@@ -159,8 +192,7 @@ void Game::gameLoop(CheckerBoard checkerBoard) {
 					bool jumpMove = checkForJump(m_row, m_col, m_rowMove, m_colMove, checkerBoard);
 					if (jumpMove) {
 						jump(m_row, m_col, m_rowMove, m_colMove, checkerBoard);
-						string player = getPlayer();
-						m_player = switchPlayer(player);
+						switchPlayer();
 					}
 				}
 				else {
@@ -174,8 +206,7 @@ void Game::gameLoop(CheckerBoard checkerBoard) {
 					if (squareMove.empty()) {
 						checkerBoard.clearSquare(m_row, m_col);
 						checkerBoard.updateBoard(m_rowMove, m_colMove, m_player);
-						string player = getPlayer();
-						m_player = switchPlayer(player);
+						switchPlayer();
 						checkerBoard.displayBoard();
 					}
 					else {
@@ -190,8 +221,7 @@ void Game::gameLoop(CheckerBoard checkerBoard) {
 					bool jumpMove = checkForJump(m_row, m_col, m_rowMove, m_colMove, checkerBoard);
 					if (jumpMove) {
 						jump(m_row, m_col, m_rowMove, m_colMove, checkerBoard);
-						string player = getPlayer();
-						m_player = switchPlayer(player);
+						switchPlayer();
 					}
 				}
 				// double jump move
@@ -199,8 +229,7 @@ void Game::gameLoop(CheckerBoard checkerBoard) {
 					bool jumpMove = checkForJump(m_row, m_col, m_rowMove, m_colMove, checkerBoard);
 					if (jumpMove) {
 						jump(m_row, m_col, m_rowMove, m_colMove, checkerBoard);
-						string player = getPlayer();
-						m_player = switchPlayer(player);
+						switchPlayer();
 					}
 				}
 				else {
@@ -220,8 +249,7 @@ void Game::gameLoop(CheckerBoard checkerBoard) {
 				if (squareMove.empty()) {
 					checkerBoard.clearSquare(m_row, m_col);
 					checkerBoard.updateBoard(m_rowMove, m_colMove, square);
-					string player = getPlayer();
-					m_player = switchPlayer(player);
+					switchPlayer();
 					checkerBoard.displayBoard();
 				}
 				else {
@@ -236,8 +264,7 @@ void Game::gameLoop(CheckerBoard checkerBoard) {
 				bool jumpMove = checkForJump(m_row, m_col, m_rowMove, m_colMove, checkerBoard);
 				if (jumpMove) {
 					jump(m_row, m_col, m_rowMove, m_colMove, checkerBoard);
-					string player = getPlayer();
-					m_player = switchPlayer(player);
+					switchPlayer();
 				}
 			}
 			// Check for double jumps
@@ -245,35 +272,26 @@ void Game::gameLoop(CheckerBoard checkerBoard) {
 				bool jumpMove = checkForJump(m_row, m_col, m_rowMove, m_colMove, checkerBoard);
 				if (jumpMove) {
 					jump(m_row, m_col, m_rowMove, m_colMove, checkerBoard);
-					string player = getPlayer();
-					m_player = switchPlayer(player);
+					switchPlayer();
 				}
 			}
 		}
 		else {
 			cout << "\tNo game piece found. Please choose another location.\n\n";
-			cout << "square: " << square << endl;
-			//gameLoop(checkerBoard);
+			gameLoop(checkerBoard);
 		}
 	}	
 }
 
 //---------------------------------------------------------------------------------
-// Return current player
-string& Game::getPlayer(void) {
-	return m_player;
-}
-
-//---------------------------------------------------------------------------------
 // Switch player
-string Game::switchPlayer(string player) {
-	if (player == "r") {
-		player = "b";
+void Game::switchPlayer(void) {
+	if (m_player == "r") {
+		m_player = "b";
 	}
 	else {
-		player = "r";
+		m_player = "r";
 	}
-	return player;
 }
 
 //---------------------------------------------------------------------------------
@@ -414,24 +432,28 @@ void Game::jump(int row, int col, int rowMove, int colMove, CheckerBoard checker
 		checkerBoard.updateBoard(rowMove, colMove, checkerBoard.getSquare(row, col));
 		checkerBoard.clearSquare(row, col);
 		checkerBoard.clearSquare((rowMove - 1), (colMove - 1));
+		checkerBoard.updateScore(m_player, jumpOption);
 		checkerBoard.displayBoard();
 		break;
 	case 2:
 		checkerBoard.updateBoard(rowMove, colMove, checkerBoard.getSquare(row, col));
 		checkerBoard.clearSquare(row, col);
 		checkerBoard.clearSquare((rowMove + 1), (colMove + 1));
+		checkerBoard.updateScore(m_player, jumpOption);
 		checkerBoard.displayBoard();
 		break;
 	case 3:
 		checkerBoard.updateBoard(rowMove, colMove, checkerBoard.getSquare(row, col));
 		checkerBoard.clearSquare(row, col);
 		checkerBoard.clearSquare((rowMove + 1), (colMove - 1));
+		checkerBoard.updateScore(m_player, jumpOption);
 		checkerBoard.displayBoard();
 		break;
 	case 4:
 		checkerBoard.updateBoard(rowMove, colMove, checkerBoard.getSquare(row, col));
 		checkerBoard.clearSquare(row, col);
 		checkerBoard.clearSquare((rowMove - 1), (colMove + 1));
+		checkerBoard.updateScore(m_player, jumpOption);
 		checkerBoard.displayBoard();
 		break;
 	case 5:
@@ -439,6 +461,7 @@ void Game::jump(int row, int col, int rowMove, int colMove, CheckerBoard checker
 		checkerBoard.clearSquare(row, col);
 		checkerBoard.clearSquare((rowMove - 3), (colMove - 3));
 		checkerBoard.clearSquare((rowMove - 1), (colMove - 1));
+		checkerBoard.updateScore(m_player, jumpOption);
 		checkerBoard.displayBoard();
 		break;
 	case 6:
@@ -446,6 +469,7 @@ void Game::jump(int row, int col, int rowMove, int colMove, CheckerBoard checker
 		checkerBoard.clearSquare(row, col);
 		checkerBoard.clearSquare((rowMove + 3), (colMove + 3));
 		checkerBoard.clearSquare((rowMove + 1), (colMove + 1));
+		checkerBoard.updateScore(m_player, jumpOption);
 		checkerBoard.displayBoard();
 		break;
 	case 7:
@@ -453,6 +477,7 @@ void Game::jump(int row, int col, int rowMove, int colMove, CheckerBoard checker
 		checkerBoard.clearSquare(row, col);
 		checkerBoard.clearSquare((rowMove + 3), (colMove - 3));
 		checkerBoard.clearSquare((rowMove + 1), (colMove - 1));
+		checkerBoard.updateScore(m_player, jumpOption);
 		checkerBoard.displayBoard();
 		break;
 	case 8:
@@ -460,14 +485,14 @@ void Game::jump(int row, int col, int rowMove, int colMove, CheckerBoard checker
 		checkerBoard.clearSquare(row, col);
 		checkerBoard.clearSquare((rowMove - 3), (colMove + 3));
 		checkerBoard.clearSquare((rowMove - 1), (colMove + 1));
+		checkerBoard.updateScore(m_player, jumpOption);
 		checkerBoard.displayBoard();
 		break;
 	default:
 		break;
 	}
 
-	string player = getPlayer();
-	m_player = switchPlayer(player);
+	switchPlayer();
 	gameLoop(checkerBoard);
 }
 
