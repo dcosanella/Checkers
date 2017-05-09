@@ -9,6 +9,8 @@
 
 using namespace std;
 
+int main();
+
 //---------------------------------------------------------------------------------
 // Display title
 void CheckerBoard::displayTitle(void) {
@@ -78,7 +80,7 @@ void CheckerBoard::displayScore() {
 
 //---------------------------------------------------------------------------------
 // Update the score
-void CheckerBoard::updateScore(string& player, int& jumpOption) {
+void CheckerBoard::updateScore(string& player, int jumpOption) {
 	if (jumpOption <= 4) {
 		if (player == "r" || player == "R") {
 			m_bPieces--;
@@ -107,7 +109,6 @@ const string& CheckerBoard::getSquare(int row, int col) {
 // Update the game board (make move)
 void CheckerBoard::updateBoard(int row, int col, string square) {
 	m_board[row][col] = square;
-	// TODO: implement function to check for king after board is updated
 	checkForKing();
 }
 
@@ -137,6 +138,29 @@ void CheckerBoard::checkForKing(void) {
 }
 
 //---------------------------------------------------------------------------------
+// Check for winner
+bool CheckerBoard::checkWinner(void) {
+	if (m_rPieces == 0 || m_bPieces == 0) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+//---------------------------------------------------------------------------------
+// Return number of 'r' pieces
+const int CheckerBoard::getRPieces(void) {
+	return m_rPieces;
+}
+
+//---------------------------------------------------------------------------------
+// Return number of 'r' pieces
+const int CheckerBoard::getBPieces(void) {
+	return m_bPieces;
+}
+
+//---------------------------------------------------------------------------------
 // Display the game
 void Game::displayGame(void) {
 	m_checkerBoard.initBoard();
@@ -147,8 +171,8 @@ void Game::displayGame(void) {
 
 //---------------------------------------------------------------------------------
 // Main game loop
-void Game::gameLoop(CheckerBoard checkerBoard) {
-	m_winner = false;
+void Game::gameLoop(CheckerBoard& checkerBoard) {
+	m_winner = checkerBoard.checkWinner();
 	while (!m_winner) {
 		cout << "\n\tTurn: " << m_player << "\n\n";
 		cout << "\t" << m_player << ", please choose the row of the game piece you would like to move: ";
@@ -280,7 +304,31 @@ void Game::gameLoop(CheckerBoard checkerBoard) {
 			cout << "\tNo game piece found. Please choose another location.\n\n";
 			gameLoop(checkerBoard);
 		}
-	}	
+	}
+
+	string answer;
+	if (checkerBoard.getRPieces() == 0) {
+		cout << "\n\tPlayer b is the winner!\n\n" << endl;
+		cout << "\nPlay again? (y/n)" << endl;
+		cin >> answer;
+		if (answer == "y") {
+			main();
+		}
+		else {
+			exit(0);
+		}
+	}
+	else if (checkerBoard.getBPieces() == 0) {
+		cout << "\n\tPlayer r is the winner!\n\n" << endl;
+		cout << "\tPlay again? (y/n)";
+		cin >> answer;
+		if (answer == "y") {
+			main();
+		}
+		else {
+			exit(0);
+		}
+	}
 }
 
 //---------------------------------------------------------------------------------
