@@ -11,6 +11,8 @@ using namespace std;
 
 int main();
 
+// TODO: implement zig-zag double jumps
+
 //---------------------------------------------------------------------------------
 // Display title
 void CheckerBoard::displayTitle(void) {
@@ -101,13 +103,13 @@ void CheckerBoard::updateScore(string& player, int jumpOption) {
 
 //---------------------------------------------------------------------------------
 // Return string inside of specfied square
-const string& CheckerBoard::getSquare(int row, int col) {
+string& CheckerBoard::getSquare(int row, int col) {
 	return m_board[row][col];
 }
 
 //---------------------------------------------------------------------------------
 // Update the game board (make move)
-void CheckerBoard::updateBoard(int row, int col, string square) {
+void CheckerBoard::updateBoard(int row, int col, string& square) {
 	m_board[row][col] = square;
 	checkForKing();
 }
@@ -344,7 +346,7 @@ void Game::switchPlayer(void) {
 
 //---------------------------------------------------------------------------------
 // Check for a legel jump move
-bool Game::checkForJump(int row, int col, int rowMove, int colMove, CheckerBoard checkerBoard) {
+bool Game::checkForJump(int row, int col, int rowMove, int colMove, CheckerBoard& checkerBoard) {
 	m_jump = false;
 	// jump down left to right
 	if (rowMove - row == 2 && colMove - col == 2) {
@@ -465,7 +467,7 @@ bool Game::checkForJump(int row, int col, int rowMove, int colMove, CheckerBoard
 
 //---------------------------------------------------------------------------------
 // Make jump move
-void Game::jump(int row, int col, int rowMove, int colMove, CheckerBoard checkerBoard) {
+void Game::jump(int row, int col, int rowMove, int colMove, CheckerBoard& checkerBoard) {
 	int jumpOption = getJumpMove();
 	string square = checkerBoard.getSquare(row, col);
 	if (square == "R" && m_player == "r") {

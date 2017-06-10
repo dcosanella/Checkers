@@ -11,8 +11,8 @@ public:
 	void displayGame(void);
 	void gameLoop(CheckerBoard& checkerBoard);
 	void switchPlayer(void);
-	bool checkForJump(int row, int col, int rowMove, int colMove, CheckerBoard checkerBoard);
-	void jump(int row, int col, int rowMove, int colMove, CheckerBoard checkerBoard);
+	bool checkForJump(int row, int col, int rowMove, int colMove, CheckerBoard& checkerBoard);
+	void jump(int row, int col, int rowMove, int colMove, CheckerBoard& checkerBoard);
 	int getJumpMove(void);
 
 private:

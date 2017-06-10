@@ -12,8 +12,8 @@ public:
 	void updateScore(string& player, int jumpOption);
 	void initBoard(void);
 	void displayBoard(void);
-	const string& getSquare(int row, int col);
-	void updateBoard(int row, int col, string square);
+	string& getSquare(int row, int col);
+	void updateBoard(int row, int col, string& square);
 	void clearSquare(int row, int col);
 	void checkForKing(void);
 	bool checkWinner(void);
